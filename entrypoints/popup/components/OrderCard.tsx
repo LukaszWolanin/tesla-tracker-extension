@@ -1,5 +1,7 @@
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import type { TeslaOrder, TasksResponse, ChangeRecord, OrderStatus } from '@/lib/types';
+import { type VehicleData, fetchVehicleData } from '@/lib/tesla-api';
+import { getAccessToken, getSettings } from '@/lib/storage';
 import {
   decodeModelCode,
   buildVehicleImageUrl,
@@ -60,10 +62,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   Model: t.catModel, Drive: t.catDrive, Other: t.catOther,
 };
 
-type Section = 'progress' | 'vehicle' | 'changes';
+type Section = 'progress' | 'vehicle' | 'vehicle-live' | 'changes';
 
 export function OrderCard({ order, tasks, changes }: OrderCardProps) {
   const [openSection, setOpenSection] = useState<Section | null>('progress');
+  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
 
   const mktOptions = order.mktOptions ?? tasks?.tasks?.registration?.orderDetails?.mktOptions;
   const modelName = decodeModelCode(order.modelCode);
@@ -72,6 +75,20 @@ export function OrderCard({ order, tasks, changes }: OrderCardProps) {
   const scheduling = tasks?.tasks?.scheduling;
   const keySpecs = mktOptions ? extractKeySpecs(mktOptions) : [];
   const currentStepIdx = ORDER_STEPS.findIndex((s) => s.status === order.orderStatus);
+  const isDelivered = order.orderStatus === 'DELIVERED' || order.isDeliveredOrPostDelivered;
+
+  // Fetch live vehicle data for delivered orders
+  useEffect(() => {
+    if (isDelivered && order.vin) {
+      (async () => {
+        const token = await getAccessToken();
+        if (!token) return;
+        const settings = await getSettings();
+        const data = await fetchVehicleData(token, order.vin!, settings.region);
+        if (data) setVehicleData(data);
+      })();
+    }
+  }, [isDelivered, order.vin]);
 
   function toggle(s: Section) {
     setOpenSection(openSection === s ? null : s);
@@ -204,6 +221,45 @@ export function OrderCard({ order, tasks, changes }: OrderCardProps) {
         >
           <VehicleDetails order={order} tasks={tasks} mktOptions={mktOptions} />
         </AccordionSection>
+
+        {/* Post-delivery vehicle data */}
+        {isDelivered && vehicleData && (
+          <AccordionSection
+            title="Pojazd"
+            summary={vehicleData.charge_state?.battery_level != null
+              ? `${vehicleData.charge_state.battery_level}% \u2022 ${Math.round(vehicleData.charge_state.battery_range ?? 0)} km`
+              : undefined}
+            open={openSection === 'vehicle-live'}
+            onToggle={() => toggle('vehicle-live')}
+          >
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              {vehicleData.charge_state?.battery_level != null && (
+                <Info label="Bateria" value={`${vehicleData.charge_state.battery_level}%`} />
+              )}
+              {vehicleData.charge_state?.battery_range != null && (
+                <Info label="Zasięg" value={`${Math.round(vehicleData.charge_state.battery_range)} km`} />
+              )}
+              {vehicleData.charge_state?.charging_state && (
+                <Info label="Ładowanie" value={vehicleData.charge_state.charging_state} />
+              )}
+              {vehicleData.vehicle_state?.odometer != null && (
+                <Info label="Przebieg" value={`${Math.round(vehicleData.vehicle_state.odometer)} km`} />
+              )}
+              {vehicleData.vehicle_state?.car_version && (
+                <Info label="Firmware" value={vehicleData.vehicle_state.car_version.split(' ')[0] ?? ''} />
+              )}
+              {vehicleData.climate_state?.inside_temp != null && (
+                <Info label="Temp. wewnątrz" value={`${vehicleData.climate_state.inside_temp}°C`} />
+              )}
+              {vehicleData.climate_state?.outside_temp != null && (
+                <Info label="Temp. zewnątrz" value={`${vehicleData.climate_state.outside_temp}°C`} />
+              )}
+              {vehicleData.vehicle_state?.locked != null && (
+                <Info label="Zamek" value={vehicleData.vehicle_state.locked ? 'Zamknięty' : 'Otwarty'} />
+              )}
+            </div>
+          </AccordionSection>
+        )}
 
         {/* Change Log */}
         {changes.length > 0 && (

@@ -18,6 +18,7 @@ import {
   appendChanges,
   clearChangeHistory,
   getSettings,
+  setSettings,
 } from '@/lib/storage';
 import type { ExtensionMessage, ChangeRecord, TeslaOrder } from '@/lib/types';
 
@@ -82,7 +83,12 @@ export default defineBackground(() => {
     }
   }
 
-  browser.runtime.onInstalled.addListener(() => ensureAlarm());
+  browser.runtime.onInstalled.addListener(async () => {
+    // Persist default settings on first install
+    const settings = await getSettings();
+    await setSettings(settings);
+    await ensureAlarm();
+  });
 
   browser.runtime.onStartup.addListener(async () => {
     await ensureAlarm();

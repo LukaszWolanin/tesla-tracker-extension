@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import type { UserSettings, TeslaRegion } from '@/lib/types';
-import { getSettings, setSettings } from '@/lib/storage';
+import { getSettings, setSettings, getChangeHistory, getOrders, getTaskDetails } from '@/lib/storage';
+import { getPremiumStatus, type PremiumStatus } from '@/lib/premium';
 import {
   DEFAULT_SETTINGS,
   MIN_POLL_INTERVAL_MINUTES,
@@ -12,9 +13,11 @@ import { t } from '@/lib/i18n';
 export function App() {
   const [settings, setLocalSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
+  const [premium, setPremium] = useState<PremiumStatus | null>(null);
 
   useEffect(() => {
     getSettings().then(setLocalSettings);
+    getPremiumStatus().then(setPremium);
   }, []);
 
   async function handleSave() {
@@ -31,6 +34,25 @@ export function App() {
 
   function update(partial: Partial<UserSettings>) {
     setLocalSettings((prev) => ({ ...prev, ...partial }));
+  }
+
+  async function exportJSON() {
+    const [history, orders, tasks] = await Promise.all([
+      getChangeHistory(), getOrders(), getTaskDetails(),
+    ]);
+    const data = { exportDate: new Date().toISOString(), orders, taskDetails: tasks, changeHistory: history };
+    downloadFile(JSON.stringify(data, null, 2), 'tesla-tracker-export.json', 'application/json');
+  }
+
+  async function exportCSV() {
+    const history = await getChangeHistory();
+    const header = 'timestamp,referenceNumber,field,oldValue,newValue';
+    const rows = history.map((c) =>
+      [new Date(c.timestamp).toISOString(), c.referenceNumber, c.field, c.oldValue ?? '', c.newValue ?? '']
+        .map((v) => '"' + String(v).replace(/"/g, '""') + '"')
+        .join(','),
+    );
+    downloadFile([header, ...rows].join('\n'), 'tesla-tracker-changes.csv', 'text/csv');
   }
 
   return (
@@ -130,6 +152,45 @@ export function App() {
         {saved ? t.saved : t.saveSettings}
       </button>
 
+      {/* Premium */}
+      <div class="divider text-xs text-base-content/30">Delivery Pass</div>
+      {premium?.active ? (
+        <div class="alert alert-success alert-sm">
+          <span class="text-xs">Delivery Pass aktywny od {premium.purchaseDate}</span>
+        </div>
+      ) : (
+        <div class="card bg-base-200 p-4">
+          <h3 class="text-sm font-bold mb-2">Delivery Pass — 39,99 PLN</h3>
+          <ul class="text-xs text-base-content/60 space-y-1 mb-3">
+            <li>Sprawdzanie co 1 minutę (zamiast 10)</li>
+            <li>Śledzenie wielu zamówień</li>
+            <li>Eksport historii zmian</li>
+            <li>Dane pojazdu po dostawie</li>
+            <li>Jednorazowa płatność — bez subskrypcji</li>
+          </ul>
+          <button class="btn btn-primary btn-sm btn-wide" disabled>
+            Wkrótce dostępne
+          </button>
+          <p class="text-[10px] text-base-content/30 mt-1">
+            Płatność przez ExtensionPay (Stripe). Pojawi się w kolejnej wersji.
+          </p>
+        </div>
+      )}
+
+      {/* Export */}
+      <div class="divider text-xs text-base-content/30">Eksport danych</div>
+      <div class="flex gap-2">
+        <button class="btn btn-outline btn-sm" onClick={exportJSON}>
+          Eksport JSON
+        </button>
+        <button class="btn btn-outline btn-sm" onClick={exportCSV}>
+          Eksport CSV
+        </button>
+      </div>
+      <p class="text-xs text-base-content/40 mt-1">
+        Eksportuje historię zmian, zamówienia i szczegóły dostawy.
+      </p>
+
       {/* Debug */}
       <div class="divider text-xs text-base-content/30">Debug</div>
       <TestButton />
@@ -157,6 +218,16 @@ function Toggle({
       />
     </label>
   );
+}
+
+function downloadFile(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function TestButton() {

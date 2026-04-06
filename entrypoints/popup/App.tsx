@@ -158,15 +158,17 @@ export function App() {
           <p class="text-xs mt-1">{t.noOrdersHint}</p>
         </div>
       ) : (
-        orders.map((order) => (
-          <OrderCard
-            key={order.referenceNumber}
-            order={order}
-            tasks={taskDetails[order.referenceNumber]}
-            changes={changes.filter(
-              (c) => c.referenceNumber === order.referenceNumber,
+        orders.map((order, idx) => (
+          <div key={order.referenceNumber}>
+            {idx > 0 && <div class="border-t-4 border-primary/20" />}
+            <OrderCard
+              order={order}
+              tasks={taskDetails[order.referenceNumber]}
+              changes={changes.filter(
+                (c) => c.referenceNumber === order.referenceNumber,
             )}
-          />
+            />
+          </div>
         ))
       )}
     </div>
