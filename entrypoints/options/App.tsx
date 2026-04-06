@@ -129,6 +129,20 @@ export function App() {
       <button class="btn btn-primary btn-sm" onClick={handleSave}>
         {saved ? t.saved : t.saveSettings}
       </button>
+
+      {/* Debug */}
+      <div class="divider text-xs text-base-content/30">Debug</div>
+      <button
+        class="btn btn-outline btn-sm btn-warning"
+        onClick={async () => {
+          await browser.runtime.sendMessage({ type: 'TEST_CHANGE' });
+        }}
+      >
+        Testuj powiadomienia
+      </button>
+      <p class="text-xs text-base-content/40 mt-1">
+        Symuluje 3 zmiany: okno dostawy, przypisanie VIN i zmiana statusu.
+      </p>
     </div>
   );
 }

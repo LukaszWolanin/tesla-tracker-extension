@@ -150,6 +150,7 @@ export type ExtensionMessage =
   | { type: 'GET_STATUS' }
   | { type: 'FORCE_CHECK' }
   | { type: 'TRY_REFRESH' }
+  | { type: 'TEST_CHANGE' }
   | { type: 'SIGN_IN' }
   | { type: 'SIGN_OUT' }
   | { type: 'STATUS_UPDATE'; data: StoredState };

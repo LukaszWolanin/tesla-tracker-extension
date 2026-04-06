@@ -155,6 +155,35 @@ export default defineBackground(() => {
         return { success: false, authenticated: false };
       }
 
+      case 'TEST_CHANGE': {
+        const testChanges: ChangeRecord[] = [
+          {
+            timestamp: Date.now(),
+            referenceNumber: 'TEST',
+            field: 'deliveryWindow',
+            oldValue: '18 Kwiecień - 9 Maj',
+            newValue: '15 Kwiecień - 25 Kwiecień',
+          },
+          {
+            timestamp: Date.now(),
+            referenceNumber: 'TEST',
+            field: 'vinAssigned',
+            oldValue: undefined,
+            newValue: 'XP7YGCET2RB000123',
+          },
+          {
+            timestamp: Date.now(),
+            referenceNumber: 'TEST',
+            field: 'orderStatus',
+            oldValue: 'BOOKED',
+            newValue: 'IN_PRODUCTION',
+          },
+        ];
+        await appendChanges(testChanges);
+        await notifyChanges(testChanges);
+        return { success: true };
+      }
+
       case 'SIGN_OUT':
         await clearAllTokens();
         await setOrders([]);
