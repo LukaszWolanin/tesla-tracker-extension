@@ -1,6 +1,6 @@
 import { ALARM_NAME } from '@/lib/constants';
 import { exchangeCodeForTokens, refreshAccessToken } from '@/lib/auth';
-import { fetchOrders, fetchTaskDetails } from '@/lib/tesla-api';
+import { fetchOrders, fetchTaskDetails, RateLimitError, NetworkError } from '@/lib/tesla-api';
 import { diffOrders, diffTaskDetails } from '@/lib/diff';
 import {
   getAccessToken,
@@ -34,33 +34,40 @@ function isAuthError(error: unknown): boolean {
 
 export default defineBackground(() => {
   // Strip Origin header from Akamai requests (prevents 403)
+  // declarativeNetRequest not available on Firefox MV2 — wrapped in try/catch
   browser.runtime.onInstalled.addListener(async () => {
-    await browser.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: [1],
-      addRules: [
-        {
-          id: 1,
-          priority: 1,
-          action: {
-            type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType,
-            requestHeaders: [
-              {
-                header: 'Origin',
-                operation: 'remove' as chrome.declarativeNetRequest.HeaderOperation,
+    try {
+      if (browser.declarativeNetRequest?.updateDynamicRules) {
+        await browser.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: [1],
+          addRules: [
+            {
+              id: 1,
+              priority: 1,
+              action: {
+                type: 'modifyHeaders' as chrome.declarativeNetRequest.RuleActionType,
+                requestHeaders: [
+                  {
+                    header: 'Origin',
+                    operation: 'remove' as chrome.declarativeNetRequest.HeaderOperation,
+                  },
+                  {
+                    header: 'Referer',
+                    operation: 'remove' as chrome.declarativeNetRequest.HeaderOperation,
+                  },
+                ],
               },
-              {
-                header: 'Referer',
-                operation: 'remove' as chrome.declarativeNetRequest.HeaderOperation,
+              condition: {
+                urlFilter: 'akamai-apigateway-vfx.tesla.com',
+                resourceTypes: ['xmlhttprequest' as chrome.declarativeNetRequest.ResourceType],
               },
-            ],
-          },
-          condition: {
-            urlFilter: 'akamai-apigateway-vfx.tesla.com',
-            resourceTypes: ['xmlhttprequest' as chrome.declarativeNetRequest.ResourceType],
-          },
-        },
-      ],
-    });
+            },
+          ],
+        });
+      }
+    } catch {
+      // Firefox MV2: declarativeNetRequest not supported, Origin stripping not needed
+    }
   });
 
   // Ensure polling alarm exists
@@ -371,17 +378,30 @@ export default defineBackground(() => {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
 
+      // Rate limited — back off
+      if (error instanceof RateLimitError || (error instanceof Error && error.name === 'RateLimitError')) {
+        const retryAfter = (error as RateLimitError).retryAfter ?? 60;
+        console.warn('[check] Rate limited, backing off', retryAfter, 's');
+        return { success: false, error: `Zbyt wiele zapytań. Ponów za ${retryAfter}s.` };
+      }
+
+      // Network error — offline
+      if (error instanceof NetworkError || (error instanceof Error && error.name === 'NetworkError')) {
+        console.warn('[check] Network error:', msg);
+        return { success: false, error: msg };
+      }
+
+      // Auth error — try refresh
       if (isAuthError(error) && !_retried) {
         console.warn('[check] Auth error, trying refresh...', msg);
         const refreshed = await tryRefreshToken();
         if (refreshed) {
           return checkDeliveryStatus(true);
         }
-        // Refresh failed — clear tokens and force re-login
         await clearAllTokens();
         return {
           success: false,
-          error: 'Session expired — please sign in again',
+          error: 'Sesja wygasła — zaloguj się ponownie',
           signOut: true,
         };
       }

@@ -6,13 +6,53 @@ import {
   TESLA_APP_VERSION,
 } from './constants';
 
+// ── Error Types ──
+
+export class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
+export class RateLimitError extends Error {
+  retryAfter: number;
+  constructor(retryAfter: number) {
+    super(`Rate limited, retry after ${retryAfter}s`);
+    this.name = 'RateLimitError';
+    this.retryAfter = retryAfter;
+  }
+}
+
+export class NetworkError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'NetworkError';
+  }
+}
+
+// ── Helpers ──
+
+function handleRateLimit(response: Response): never {
+  const retryAfter = parseInt(response.headers.get('Retry-After') ?? '60', 10);
+  throw new RateLimitError(retryAfter);
+}
+
+function wrapNetworkError(error: unknown): never {
+  if (error instanceof AuthError || error instanceof RateLimitError) throw error;
+  if (error instanceof TypeError && (error.message.includes('fetch') || error.message.includes('network'))) {
+    throw new NetworkError('Brak połączenia z internetem');
+  }
+  if (error instanceof Error) throw new NetworkError(error.message);
+  throw new NetworkError(String(error));
+}
+
 // ── Fleet API / Owner API ──
 
 export async function fetchOrders(
   accessToken: string,
   region: TeslaRegion = 'eu',
 ): Promise<TeslaOrder[]> {
-  // Owner API first (works with ownerapi client_id), then Fleet API
   const fleetBase = FLEET_API_BASES[region];
   const urls = [
     `${OWNER_API_BASE}/api/1/users/orders`,
@@ -29,31 +69,32 @@ export async function fetchOrders(
       });
 
       if (response.status === 401) {
-        errors.push(`${url}: 401`);
-        continue; // try next endpoint — 401 from one doesn't mean token is bad
+        errors.push(`401`);
+        continue;
       }
+      if (response.status === 429) handleRateLimit(response);
 
       all401 = false;
 
       if (!response.ok) {
-        errors.push(`${url}: ${response.status}`);
+        errors.push(`${response.status}`);
         continue;
       }
 
       const data = await response.json();
       return data.response ?? [];
     } catch (error) {
+      if (error instanceof RateLimitError) throw error;
       all401 = false;
-      errors.push(`${url}: ${error instanceof Error ? error.message : String(error)}`);
+      errors.push(error instanceof Error ? error.message : String(error));
     }
   }
 
-  // Only throw AuthError if ALL endpoints returned 401
   if (all401 && errors.length > 0) {
     throw new AuthError('Token expired');
   }
 
-  throw new Error(`Failed to fetch orders: ${errors.join('; ')}`);
+  throw new NetworkError(`Nie udało się pobrać zamówień (${errors.join(', ')})`);
 }
 
 export async function fetchUserRegion(
@@ -64,20 +105,17 @@ export async function fetchUserRegion(
       const response = await fetch(`${base}/api/1/users/region`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-
       if (!response.ok) continue;
-
       const data = await response.json();
       return data.response;
     } catch {
       // Try next
     }
   }
-
-  throw new Error('Failed to determine user region');
+  throw new NetworkError('Nie udało się określić regionu');
 }
 
-// ── Akamai Tasks API (undocumented, richest data) ──
+// ── Akamai Tasks API ──
 
 export async function fetchTaskDetails(
   accessToken: string,
@@ -92,26 +130,22 @@ export async function fetchTaskDetails(
     appVersion: TESLA_APP_VERSION,
   });
 
-  const response = await fetch(`${AKAMAI_API_BASE}/tasks?${params}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  try {
+    const response = await fetch(`${AKAMAI_API_BASE}/tasks?${params}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (response.status === 401) throw new AuthError('Token expired');
-  if (!response.ok) {
-    throw new Error(`Tasks API error: ${response.status}`);
-  }
+    if (response.status === 401) throw new AuthError('Token expired');
+    if (response.status === 429) handleRateLimit(response);
+    if (!response.ok) {
+      throw new Error(`Tasks API: ${response.status}`);
+    }
 
-  return response.json();
-}
-
-// ── Error Types ──
-
-export class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthError';
+    return response.json();
+  } catch (error) {
+    wrapNetworkError(error);
   }
 }

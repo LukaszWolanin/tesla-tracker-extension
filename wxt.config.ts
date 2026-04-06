@@ -26,6 +26,13 @@ export default defineConfig({
       48: '/icons/icon-48.png',
       128: '/icons/icon-128.png',
     },
+
+    browser_specific_settings: {
+      gecko: {
+        id: 'tesla-delivery-tracker@wolanin.dev',
+        strict_min_version: '109.0',
+      },
+    },
   },
 
   vite: () => ({
