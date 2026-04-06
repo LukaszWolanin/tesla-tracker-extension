@@ -1,5 +1,6 @@
 import type { TeslaOrder, TasksResponse, OrderStatus } from '@/lib/types';
 import { CollapsibleCard } from './CollapsibleCard';
+import { t } from '@/lib/i18n';
 
 interface DeliveryTimelineProps {
   order: TeslaOrder;
@@ -7,21 +8,21 @@ interface DeliveryTimelineProps {
 }
 
 const ORDER_STEPS: { status: OrderStatus; label: string }[] = [
-  { status: 'PENDING', label: 'Order Placed' },
-  { status: 'BOOKED', label: 'Order Confirmed' },
-  { status: 'IN_PRODUCTION', label: 'In Production' },
-  { status: 'IN_TRANSIT', label: 'In Transit' },
-  { status: 'READY FOR APPOINTMENT', label: 'Ready for Pickup' },
-  { status: 'DELIVERED', label: 'Delivered' },
+  { status: 'PENDING', label: t.orderPlaced },
+  { status: 'BOOKED', label: t.orderConfirmed },
+  { status: 'IN_PRODUCTION', label: t.inProduction },
+  { status: 'IN_TRANSIT', label: t.inTransit },
+  { status: 'READY FOR APPOINTMENT', label: t.readyForPickup },
+  { status: 'DELIVERED', label: t.delivered },
 ];
 
 const MILESTONE_LABELS: Record<string, string> = {
-  'Sign Agreements': 'Sign Agreements',
-  'Vehicle Exited Factory': 'Left Factory',
-  'Final Invoice Generation': 'Invoice Generated',
-  'Complete Final Payment': 'Payment Complete',
-  'Vehicle Ready for Transport': 'Ready for Transport',
-  'Schedule Delivery': 'Schedule Delivery',
+  'Sign Agreements': t['Sign Agreements'],
+  'Vehicle Exited Factory': t['Vehicle Exited Factory'],
+  'Final Invoice Generation': t['Final Invoice Generation'],
+  'Complete Final Payment': t['Complete Final Payment'],
+  'Vehicle Ready for Transport': t['Vehicle Ready for Transport'],
+  'Schedule Delivery': t['Schedule Delivery'],
 };
 
 export function DeliveryTimeline({ order, tasks }: DeliveryTimelineProps) {
@@ -34,32 +35,29 @@ export function DeliveryTimeline({ order, tasks }: DeliveryTimelineProps) {
   );
   const currentLabel = ORDER_STEPS[currentStepIdx]?.label ?? order.orderStatus;
 
-  // Summary when collapsed: current status + delivery window
   const summary = deliveryWindow
     ? `${currentLabel} \u2022 ${deliveryWindow}`
     : currentLabel;
 
   return (
-    <CollapsibleCard title="Delivery Progress" summary={summary} defaultOpen>
-      {/* Delivery window / appointment */}
+    <CollapsibleCard title={t.deliveryProgress} summary={summary} defaultOpen>
       {(deliveryWindow || appointmentAddr) && (
         <div class="mb-3 p-2 bg-primary/10 rounded-lg space-y-1">
           {deliveryWindow && (
             <div>
-              <span class="text-xs text-base-content/50">Delivery Window</span>
+              <span class="text-xs text-base-content/50">{t.deliveryWindow}</span>
               <p class="text-sm font-medium">{deliveryWindow}</p>
             </div>
           )}
           {appointmentAddr && (
             <div>
-              <span class="text-xs text-base-content/50">Appointment</span>
+              <span class="text-xs text-base-content/50">{t.appointment}</span>
               <p class="text-sm font-medium">{appointmentAddr}</p>
             </div>
           )}
         </div>
       )}
 
-      {/* Steps */}
       <ul class="steps steps-vertical text-xs w-full">
         {ORDER_STEPS.map((step, i) => {
           const isDone = i <= currentStepIdx;
@@ -82,11 +80,10 @@ export function DeliveryTimeline({ order, tasks }: DeliveryTimelineProps) {
         })}
       </ul>
 
-      {/* Milestones from Tasks API */}
       {hasMilestones && (
         <div class="mt-3 pt-3 border-t border-base-300">
           <h4 class="text-xs font-semibold text-base-content/60 mb-2">
-            Milestones
+            {t.milestones}
           </h4>
           <div class="space-y-1">
             {tasks!.activeTaskList!.map((milestone) => {

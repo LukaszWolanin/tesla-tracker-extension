@@ -7,6 +7,7 @@ import {
   getLastChecked,
   getChangeHistory,
 } from '@/lib/storage';
+import { t } from '@/lib/i18n';
 import { LoginPrompt } from './components/LoginPrompt';
 import { StatusCard } from './components/StatusCard';
 import { DeliveryTimeline } from './components/DeliveryTimeline';
@@ -139,13 +140,13 @@ export function App() {
     <div class="p-4 space-y-3">
       {/* Header */}
       <div class="flex items-center justify-between">
-        <h1 class="text-lg font-bold">Delivery Tracker</h1>
+        <h1 class="text-lg font-bold">{t.appTitle}</h1>
         <div class="flex items-center gap-2">
           <button
             class="btn btn-ghost btn-xs"
             onClick={handleForceCheck}
             disabled={loading}
-            title="Check now"
+            title={t.checkNow}
           >
             {loading ? (
               <span class="loading loading-spinner loading-xs" />
@@ -157,7 +158,7 @@ export function App() {
             class="btn btn-ghost btn-xs text-base-content/50"
             onClick={handleSignOut}
           >
-            Sign Out
+            {t.signOut}
           </button>
         </div>
       </div>
@@ -172,18 +173,15 @@ export function App() {
       {/* Last checked */}
       {lastChecked && (
         <p class="text-xs text-base-content/40">
-          Last checked: {formatTimeAgo(lastChecked)}
+          {t.lastChecked}: {formatTimeAgo(lastChecked)}
         </p>
       )}
 
       {/* Orders */}
       {orders.length === 0 ? (
         <div class="text-center py-8 text-base-content/60">
-          <p class="text-lg font-medium">No orders found</p>
-          <p class="text-sm mt-1">
-            Click refresh to check for orders, or make sure you have an active
-            Tesla order on your account.
-          </p>
+          <p class="text-lg font-medium">{t.noOrders}</p>
+          <p class="text-sm mt-1">{t.noOrdersHint}</p>
         </div>
       ) : (
         orders.map((order) => (
@@ -209,9 +207,9 @@ export function App() {
 
 function formatTimeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp;
-  if (diff < 60_000) return 'just now';
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-  return new Date(timestamp).toLocaleTimeString();
+  if (diff < 60_000) return t.justNow;
+  if (diff < 3_600_000) return t.minutesAgo(Math.floor(diff / 60_000));
+  return new Date(timestamp).toLocaleTimeString('pl-PL');
 }
 
 function RefreshIcon() {

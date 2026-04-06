@@ -1,20 +1,34 @@
 import type { ChangeRecord } from '@/lib/types';
 import { decodeChangeField, decodeChangeValue } from '@/lib/decode';
 import { CollapsibleCard } from './CollapsibleCard';
+import { t } from '@/lib/i18n';
+
+// Polish field labels
+const FIELD_LABELS_PL: Record<string, string> = {
+  orderStatus: t.changeStatus,
+  vinAssigned: t.changeVinAssigned,
+  esignStatus: t.changeEsignStatus,
+  deliveryWindow: t.changeDeliveryWindow,
+  vehicleOdometer: t.changeOdometer,
+  vehicleRoutingLocation: t.changeDeliveryCenter,
+  newOrder: t.changeNewOrder,
+};
 
 interface ChangeLogProps {
   changes: ChangeRecord[];
 }
 
 export function ChangeLog({ changes }: ChangeLogProps) {
-  // Summary: latest change
   const latest = changes[0];
+  const latestField = latest
+    ? FIELD_LABELS_PL[latest.field] ?? decodeChangeField(latest.field)
+    : '';
   const summary = latest
-    ? `${decodeChangeField(latest.field)}: ${decodeChangeValue(latest.field, latest.newValue)}`
+    ? `${latestField}: ${decodeChangeValue(latest.field, latest.newValue)}`
     : undefined;
 
   return (
-    <CollapsibleCard title="Recent Changes" summary={summary}>
+    <CollapsibleCard title={t.recentChanges} summary={summary}>
       <div class="space-y-2">
         {changes.map((change, i) => (
           <ChangeItem key={`${change.timestamp}-${i}`} change={change} />
@@ -25,7 +39,11 @@ export function ChangeLog({ changes }: ChangeLogProps) {
 }
 
 function ChangeItem({ change }: { change: ChangeRecord }) {
-  const fieldLabel = decodeChangeField(change.field);
+  const fieldLabel =
+    FIELD_LABELS_PL[change.field] ??
+    (change.field.startsWith('milestone:')
+      ? change.field.replace('milestone:', '')
+      : change.field);
   const oldVal = decodeChangeValue(change.field, change.oldValue);
   const newVal = decodeChangeValue(change.field, change.newValue);
   const timeStr = formatTime(change.timestamp);
@@ -58,7 +76,7 @@ function formatTime(ts: number): string {
     d.getFullYear() === now.getFullYear();
 
   if (isToday) {
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
   }
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('pl-PL', { month: 'short', day: 'numeric' });
 }

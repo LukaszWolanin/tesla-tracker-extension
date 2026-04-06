@@ -1,17 +1,18 @@
 import type { TeslaOrder, OrderStatus } from '@/lib/types';
 import { decodeModelCode } from '@/lib/decode';
+import { t } from '@/lib/i18n';
 
 interface StatusCardProps {
   order: TeslaOrder;
 }
 
 const STATUS_BADGES: Record<OrderStatus, { label: string; class: string }> = {
-  PENDING: { label: 'Pending', class: 'badge-warning' },
-  BOOKED: { label: 'Booked', class: 'badge-info' },
-  IN_PRODUCTION: { label: 'In Production', class: 'badge-info' },
-  IN_TRANSIT: { label: 'In Transit', class: 'badge-accent' },
-  'READY FOR APPOINTMENT': { label: 'Ready', class: 'badge-success' },
-  DELIVERED: { label: 'Delivered', class: 'badge-success' },
+  PENDING: { label: t.statusPending, class: 'badge-warning' },
+  BOOKED: { label: t.statusBooked, class: 'badge-info' },
+  IN_PRODUCTION: { label: t.statusInProduction, class: 'badge-info' },
+  IN_TRANSIT: { label: t.statusInTransit, class: 'badge-accent' },
+  'READY FOR APPOINTMENT': { label: t.statusReady, class: 'badge-success' },
+  DELIVERED: { label: t.statusDelivered, class: 'badge-success' },
 };
 
 export function StatusCard({ order }: StatusCardProps) {
@@ -42,17 +43,16 @@ export function StatusCard({ order }: StatusCardProps) {
           </div>
         )}
 
-        {/* Show whatever order-level info we have */}
         <div class="flex flex-wrap gap-x-3 gap-y-0.5 mt-2 text-xs text-base-content/50">
           {order.year && <span>{order.year}</span>}
           {order.countryCode && <span>{order.countryCode}</span>}
           {order.esignStatus && order.esignStatus !== 'NOT_REQUIRED' && (
             <span>
-              E-Sign: {order.esignStatus === 'COMPLETED' ? 'Done' : 'Pending'}
+              {t.eSign}: {order.esignStatus === 'COMPLETED' ? t.eSignCompleted : t.eSignPending}
             </span>
           )}
           {order.isPaymentPending && (
-            <span class="text-warning">Payment pending</span>
+            <span class="text-warning">{t.payment}: {t.paymentPending}</span>
           )}
         </div>
       </div>

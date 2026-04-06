@@ -19,7 +19,7 @@ import {
   clearChangeHistory,
   getSettings,
 } from '@/lib/storage';
-import type { ExtensionMessage, ChangeRecord } from '@/lib/types';
+import type { ExtensionMessage, ChangeRecord, TeslaOrder } from '@/lib/types';
 
 function isAuthError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
@@ -327,6 +327,9 @@ export default defineBackground(() => {
         await notifyChanges(allChanges);
       }
 
+      // Update extension badge with current status
+      await updateBadge(currentOrders);
+
       return { success: true, ordersCount: currentOrders.length };
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -361,19 +364,19 @@ export default defineBackground(() => {
       switch (change.field) {
         case 'orderStatus':
           if (!settings.notifyOnStatusChange) continue;
-          title = 'Order Status Changed';
+          title = 'Zmiana statusu zamówienia';
           message = `${change.referenceNumber}: ${change.oldValue} → ${change.newValue}`;
           break;
 
         case 'vinAssigned':
           if (!settings.notifyOnVinAssigned) continue;
-          title = 'VIN Assigned!';
+          title = 'Przypisano VIN!';
           message = `${change.referenceNumber}: ${change.newValue}`;
           break;
 
         case 'deliveryWindow':
           if (!settings.notifyOnDeliveryWindow) continue;
-          title = 'Delivery Window Updated';
+          title = 'Zaktualizowano okno dostawy';
           message = `${change.referenceNumber}: ${change.newValue}`;
           break;
 
@@ -381,7 +384,7 @@ export default defineBackground(() => {
           if (change.field.startsWith('milestone:')) {
             if (!settings.notifyOnMilestone) continue;
             const milestoneName = change.field.replace('milestone:', '');
-            title = 'Milestone Update';
+            title = 'Aktualizacja kamienia milowego';
             message = `${milestoneName}: ${change.newValue}`;
           } else {
             continue;
@@ -395,5 +398,30 @@ export default defineBackground(() => {
         message,
       });
     }
+  }
+
+  // ── Badge on extension icon ──
+
+  const STATUS_BADGE: Record<string, { text: string; color: string }> = {
+    PENDING: { text: '...', color: '#FBBD23' },
+    BOOKED: { text: 'OK', color: '#3ABFF8' },
+    IN_PRODUCTION: { text: 'FAB', color: '#3ABFF8' },
+    IN_TRANSIT: { text: 'TR', color: '#A78BFA' },
+    'READY FOR APPOINTMENT': { text: '!', color: '#36D399' },
+    DELIVERED: { text: '\u2713', color: '#36D399' },
+  };
+
+  async function updateBadge(orders: TeslaOrder[]): Promise<void> {
+    if (orders.length === 0) {
+      await browser.action.setBadgeText({ text: '' });
+      return;
+    }
+
+    // Use the first (most relevant) order
+    const order = orders[0];
+    const badge = STATUS_BADGE[order.orderStatus] ?? { text: '?', color: '#666' };
+
+    await browser.action.setBadgeText({ text: badge.text });
+    await browser.action.setBadgeBackgroundColor({ color: badge.color });
   }
 });

@@ -1,29 +1,40 @@
 import type { TeslaOrder, TasksResponse } from '@/lib/types';
 import { decodeOptions, extractKeySpecs, OPTION_CODES } from '@/lib/decode';
 import { CollapsibleCard } from './CollapsibleCard';
+import { t } from '@/lib/i18n';
 
 interface VehicleInfoProps {
   order: TeslaOrder;
   tasks?: TasksResponse;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  Drivetrain: t.catDrivetrain,
+  Color: t.catColor,
+  Interior: t.catInterior,
+  Wheels: t.catWheels,
+  Seating: t.catSeating,
+  Autopilot: t.catAutopilot,
+  Charging: t.catCharging,
+  Towing: t.catHak,
+  Package: t.catPackage,
+  Model: t.catModel,
+  Drive: t.catDrive,
+  Other: t.catOther,
+};
+
 export function VehicleInfo({ order, tasks }: VehicleInfoProps) {
   const details = tasks?.tasks?.registration?.orderDetails;
   const payment = tasks?.tasks?.finalPayment?.data;
   const vinInfo = order.vin ? decodeVin(order.vin) : null;
 
-  // mktOptions from order or tasks
-  const mktOptions =
-    order.mktOptions ?? details?.mktOptions;
+  const mktOptions = order.mktOptions ?? details?.mktOptions;
 
-  // Key specs for collapsed summary
   const keySpecs = mktOptions ? extractKeySpecs(mktOptions) : [];
   const summary = keySpecs.length > 0 ? keySpecs.join(' \u2022 ') : undefined;
 
-  // Decoded options grouped by category
   const decodedOpts = mktOptions ? decodeOptions(mktOptions) : [];
 
-  // Group by category
   const grouped = new Map<string, typeof decodedOpts>();
   for (const opt of decodedOpts) {
     const list = grouped.get(opt.category) ?? [];
@@ -31,57 +42,57 @@ export function VehicleInfo({ order, tasks }: VehicleInfoProps) {
     grouped.set(opt.category, list);
   }
 
-  // Category display order
   const categoryOrder = [
     'Drivetrain', 'Color', 'Interior', 'Wheels', 'Seating',
     'Autopilot', 'Charging', 'Towing', 'Package', 'Model', 'Drive', 'Other',
   ];
 
   return (
-    <CollapsibleCard title="Vehicle Details" summary={summary}>
-      {/* Grid of info rows */}
+    <CollapsibleCard title={t.vehicleDetails} summary={summary}>
       <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-        {order.vin && <InfoRow label="VIN" value={order.vin} mono />}
-        {vinInfo?.factory && <InfoRow label="Factory" value={vinInfo.factory} />}
-        {vinInfo?.battery && <InfoRow label="Battery" value={vinInfo.battery} />}
+        {order.vin && <InfoRow label={t.vin} value={order.vin} mono />}
+        {vinInfo?.factory && <InfoRow label={t.factory} value={vinInfo.factory} />}
+        {vinInfo?.battery && <InfoRow label={t.battery} value={vinInfo.battery} />}
         {(details?.modelYear || order.year) && (
-          <InfoRow label="Model Year" value={String(details?.modelYear ?? order.year)} />
+          <InfoRow label={t.modelYear} value={String(details?.modelYear ?? order.year)} />
         )}
-        {order.countryCode && <InfoRow label="Market" value={order.countryCode} />}
-        {order.locale && <InfoRow label="Locale" value={order.locale} />}
+        {order.countryCode && <InfoRow label={t.market} value={order.countryCode} />}
+        {order.locale && <InfoRow label={t.locale} value={order.locale} />}
         {details?.vehicleRoutingLocation && (
-          <InfoRow label="Delivery Center" value={details.vehicleRoutingLocation} />
+          <InfoRow label={t.deliveryCenter} value={details.vehicleRoutingLocation} />
         )}
         {details?.vehicleOdometer !== undefined && (
           <InfoRow
-            label="Odometer"
-            value={`${details.vehicleOdometer} ${details.vehicleOdometerType ?? 'MI'}`}
+            label={t.odometer}
+            value={`${details.vehicleOdometer} ${details.vehicleOdometerType ?? 'km'}`}
           />
         )}
-        {details?.bookedDate && <InfoRow label="Booked" value={details.bookedDate} />}
+        {details?.bookedDate && <InfoRow label={t.booked} value={details.bookedDate} />}
         {details?.reservationDate && (
           <InfoRow
-            label="Reserved"
-            value={new Date(details.reservationDate).toLocaleDateString()}
+            label={t.reserved}
+            value={new Date(details.reservationDate).toLocaleDateString('pl-PL')}
           />
         )}
         {payment?.totalDue !== undefined && (
-          <InfoRow label="Amount Due" value={formatCurrency(payment.totalDue)} />
+          <InfoRow label={t.amountDue} value={formatCurrency(payment.totalDue)} />
         )}
         {order.esignStatus && order.esignStatus !== 'NOT_REQUIRED' && (
-          <InfoRow label="E-Sign" value={formatEsign(order.esignStatus)} />
+          <InfoRow
+            label={t.eSign}
+            value={order.esignStatus === 'COMPLETED' ? t.eSignCompleted : t.eSignPending}
+          />
         )}
-        {order.isPaymentPending && <InfoRow label="Payment" value="Pending" />}
+        {order.isPaymentPending && <InfoRow label={t.payment} value={t.paymentPending} />}
         {order.orderSubstatus && (
-          <InfoRow label="Sub-status" value={order.orderSubstatus} />
+          <InfoRow label={t.subStatus} value={order.orderSubstatus} />
         )}
       </div>
 
-      {/* Configuration — decoded options grouped */}
       {decodedOpts.length > 0 && (
         <div class="mt-3 pt-3 border-t border-base-300">
           <span class="text-xs font-semibold text-base-content/60">
-            Configuration
+            {t.configuration}
           </span>
           <div class="mt-2 space-y-2">
             {categoryOrder
@@ -89,7 +100,7 @@ export function VehicleInfo({ order, tasks }: VehicleInfoProps) {
               .map((cat) => (
                 <div key={cat}>
                   <span class="text-[10px] uppercase tracking-wider text-base-content/30">
-                    {cat}
+                    {CATEGORY_LABELS[cat] ?? cat}
                   </span>
                   <div class="flex flex-wrap gap-1 mt-0.5">
                     {grouped.get(cat)!.map((opt) => {
@@ -114,68 +125,42 @@ export function VehicleInfo({ order, tasks }: VehicleInfoProps) {
   );
 }
 
-function InfoRow({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function InfoRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div class="min-w-0">
       <span class="text-base-content/50">{label}</span>
-      <p class={`font-medium truncate ${mono ? 'font-mono text-[11px]' : ''}`}>
-        {value}
-      </p>
+      <p class={`font-medium truncate ${mono ? 'font-mono text-[11px]' : ''}`}>{value}</p>
     </div>
   );
 }
 
-interface VinInfo {
-  factory: string;
-  battery: string;
-}
-
-function decodeVin(vin: string): VinInfo {
+function decodeVin(vin: string) {
   const wmi = vin.substring(0, 3);
   const batteryChar = vin.charAt(6);
-
   const factories: Record<string, string> = {
     '5YJ': 'Fremont, CA',
     '7SA': 'Austin, TX',
     '7G2': 'Austin, TX',
-    LRW: 'Shanghai',
-    XP7: 'Berlin-Brandenburg',
+    LRW: 'Szanghaj',
+    XP7: 'Berlin-Brandenburgia',
   };
-
   const batteries: Record<string, string> = {
     E: 'Li-Ion (NCA/NCM)',
     F: 'LFP',
-    H: '4680 Cells',
+    H: 'Ogniwa 4680',
     V: 'NCA (Panasonic)',
     W: 'NCM',
   };
-
   return {
     factory: factories[wmi] ?? wmi,
     battery: batteries[batteryChar] ?? batteryChar,
   };
 }
 
-function formatEsign(status: string): string {
-  const map: Record<string, string> = {
-    PENDING: 'Pending',
-    COMPLETED: 'Completed',
-  };
-  return map[status] ?? status;
-}
-
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat('pl-PL', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'PLN',
     maximumFractionDigits: 0,
   }).format(amount);
 }

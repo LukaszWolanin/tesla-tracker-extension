@@ -1,16 +1,15 @@
 import { generatePKCE, buildAuthUrl } from '@/lib/auth';
 import { setCodeVerifier } from '@/lib/storage';
+import { t } from '@/lib/i18n';
 
 export function LoginPrompt() {
   async function handleSignIn() {
     const { codeVerifier, codeChallenge } = await generatePKCE();
     const state = crypto.randomUUID();
 
-    // Store code verifier for later exchange
     await setCodeVerifier(codeVerifier);
 
     const authUrl = buildAuthUrl(codeChallenge, state);
-    // Open Tesla login in a new tab
     browser.tabs.create({ url: authUrl });
   }
 
@@ -34,20 +33,16 @@ export function LoginPrompt() {
           </svg>
         </div>
 
-        <h1 class="text-xl font-bold">Delivery Tracker</h1>
-        <p class="text-sm text-base-content/60 mt-2">
-          Track your Tesla delivery status with real-time updates and
-          notifications.
-        </p>
+        <h1 class="text-xl font-bold">{t.loginTitle}</h1>
+        <p class="text-sm text-base-content/60 mt-2">{t.loginDescription}</p>
       </div>
 
       <button class="btn btn-primary btn-wide" onClick={handleSignIn}>
-        Sign in with Tesla
+        {t.signIn}
       </button>
 
       <p class="text-xs text-base-content/40 mt-4 max-w-[280px]">
-        Your credentials are handled directly by Tesla. Tokens are encrypted
-        and stored locally — never sent to third parties.
+        {t.loginPrivacy}
       </p>
     </div>
   );
