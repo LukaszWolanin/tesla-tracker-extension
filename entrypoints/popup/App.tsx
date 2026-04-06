@@ -8,6 +8,7 @@ import {
   getChangeHistory,
 } from '@/lib/storage';
 import { t } from '@/lib/i18n';
+import { CONFIG } from '@/lib/config';
 import { LoginPrompt } from './components/LoginPrompt';
 import { OrderCard } from './components/OrderCard';
 
@@ -138,7 +139,7 @@ export function App() {
             )}
           </button>
           <a
-            href="https://github.com/sponsors/LukaszWolanin"
+            href={CONFIG.githubSponsorsUrl}
             target="_blank"
             rel="noopener"
             class="btn btn-ghost btn-xs text-base-content/30 text-[10px]"

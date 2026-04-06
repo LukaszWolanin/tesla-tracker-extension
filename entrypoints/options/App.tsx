@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import type { UserSettings, TeslaRegion } from '@/lib/types';
 import { getSettings, setSettings, getChangeHistory, getOrders, getTaskDetails } from '@/lib/storage';
+import { CONFIG } from '@/lib/config';
 
 import {
   DEFAULT_SETTINGS,
@@ -167,7 +168,7 @@ export function App() {
       <div class="divider text-xs text-base-content/30">Wesprzyj projekt</div>
       <div class="flex gap-2">
         <a
-          href="https://github.com/sponsors/LukaszWolanin"
+          href={CONFIG.githubSponsorsUrl}
           target="_blank"
           rel="noopener"
           class="btn btn-outline btn-sm gap-1"
@@ -176,7 +177,7 @@ export function App() {
           GitHub Sponsors
         </a>
         <a
-          href="https://buymeacoffee.com/LukaszWolanin"
+          href={CONFIG.buyMeCoffeeUrl}
           target="_blank"
           rel="noopener"
           class="btn btn-outline btn-sm gap-1"
