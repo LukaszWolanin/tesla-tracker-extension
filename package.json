@@ -1,7 +1,15 @@
 {
   "name": "tesla-tracker-browser",
-  "version": "0.1.0",
-  "description": "Browser extension for tracking Tesla vehicle delivery status",
+  "version": "1.0.0",
+  "description": "Browser extension for tracking Tesla vehicle delivery status with real-time notifications",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LukaszWolanin/tesla-tracker-extension.git"
+  },
+  "homepage": "https://github.com/LukaszWolanin/tesla-tracker-extension",
+  "bugs": {
+    "url": "https://github.com/LukaszWolanin/tesla-tracker-extension/issues"
+  },
   "private": true,
   "type": "module",
   "scripts": {
@@ -27,7 +35,7 @@
     "browser-extension",
     "wxt"
   ],
-  "author": "",
+  "author": "Lukasz Wolanin <lukasz.wolanin1@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@preact/preset-vite": "^2.10.5",

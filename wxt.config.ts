@@ -6,8 +6,8 @@ export default defineConfig({
   manifest: {
     name: 'Delivery Tracker for Tesla',
     description:
-      'Track your Tesla vehicle delivery status with real-time notifications',
-    version: '0.1.0',
+      'Track your Tesla vehicle delivery status with real-time notifications, delivery timeline, and vehicle configuration decoder.',
+    version: '1.0.0',
 
     permissions: ['storage', 'alarms', 'notifications', 'cookies', 'webNavigation', 'declarativeNetRequest'],
 
