@@ -30,15 +30,33 @@ export type OrderStatus =
 
 export interface TasksResponse {
   tasks: {
+    deliveryDetails?: {
+      pickUpZipCode?: string;
+      customerType?: string;
+      orderContact?: string;
+    };
     registration?: {
       orderDetails?: OrderDetails;
+      orderType?: string;
+      currentStep?: string;
+      regData?: {
+        regDetails?: {
+          missingDocuments?: string;
+          currentStep?: string;
+          nextStep?: string;
+        };
+      };
     };
     scheduling?: SchedulingData;
+    financing?: { complete?: boolean };
     finalPayment?: {
       data?: PaymentData;
+      complete?: boolean;
     };
+    tradeIn?: { complete?: boolean };
   };
   activeTaskList?: TaskMilestone[];
+  state?: string;
 }
 
 export interface OrderDetails {
@@ -57,6 +75,11 @@ export interface OrderDetails {
 export interface SchedulingData {
   deliveryWindowDisplay?: string;
   apptDateTimeAddressStr?: string;
+  deliveryType?: string;
+  selfSchedulingUrl?: string;
+  isMoreThanTwoWeeks?: boolean;
+  deliveryAppointmentDate?: string;
+  modelCode?: string;
 }
 
 export interface PaymentData {

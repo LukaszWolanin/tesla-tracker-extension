@@ -9,10 +9,7 @@ import {
 } from '@/lib/storage';
 import { t } from '@/lib/i18n';
 import { LoginPrompt } from './components/LoginPrompt';
-import { StatusCard } from './components/StatusCard';
-import { DeliveryTimeline } from './components/DeliveryTimeline';
-import { VehicleInfo } from './components/VehicleInfo';
-import { ChangeLog } from './components/ChangeLog';
+import { OrderCard } from './components/OrderCard';
 
 const AUTO_REFRESH_MS = 30_000;
 
@@ -29,18 +26,13 @@ export function App() {
   useEffect(() => {
     initializePopup();
 
-    // Listen for storage changes
     const onChange = (
       _changes: Record<string, browser.Storage.StorageChange>,
       area: string,
     ) => {
-      if (area === 'session' || area === 'local') {
-        loadState();
-      }
+      if (area === 'session' || area === 'local') loadState();
     };
     browser.storage.onChanged.addListener(onChange);
-
-    // Auto-refresh while popup is open
     intervalRef.current = setInterval(loadState, AUTO_REFRESH_MS);
 
     return () => {
@@ -50,43 +42,35 @@ export function App() {
   }, []);
 
   async function initializePopup() {
-    // First check if we have an access token
     const token = await getAccessToken();
     if (token) {
       await loadState();
       return;
     }
-
-    // No access token — ask background to try refresh from stored refresh token
     try {
       const response = await browser.runtime.sendMessage({ type: 'TRY_REFRESH' });
       if (response?.authenticated) {
         await loadState();
         return;
       }
-    } catch {
-      // background unavailable
-    }
-
-    // No token and refresh failed — show login
+    } catch { /* */ }
     setIsLoggedIn(false);
   }
 
   async function loadState() {
     const token = await getAccessToken();
     setIsLoggedIn(!!token);
-
     if (token) {
-      const [storedOrders, storedTasks, checked, history] = await Promise.all([
+      const [o, td, lc, h] = await Promise.all([
         getOrders(),
         getTaskDetails(),
         getLastChecked(),
         getChangeHistory(),
       ]);
-      setOrders(storedOrders);
-      setTaskDetails(storedTasks);
-      setLastCheckedState(checked);
-      setChanges(history.slice(-20).reverse());
+      setOrders(o);
+      setTaskDetails(td);
+      setLastCheckedState(lc);
+      setChanges(h.slice(-20).reverse());
     }
   }
 
@@ -94,9 +78,7 @@ export function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await browser.runtime.sendMessage({
-        type: 'FORCE_CHECK',
-      });
+      const response = await browser.runtime.sendMessage({ type: 'FORCE_CHECK' });
       if (response?.signOut) {
         setIsLoggedIn(false);
         setOrders([]);
@@ -104,9 +86,7 @@ export function App() {
         setError(null);
         return;
       }
-      if (response?.error) {
-        setError(response.error);
-      }
+      if (response?.error) setError(response.error);
       await loadState();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -132,18 +112,21 @@ export function App() {
     );
   }
 
-  if (!isLoggedIn) {
-    return <LoginPrompt />;
-  }
+  if (!isLoggedIn) return <LoginPrompt />;
 
   return (
-    <div class="p-4 space-y-3">
-      {/* Header */}
-      <div class="flex items-center justify-between">
-        <h1 class="text-lg font-bold">{t.appTitle}</h1>
-        <div class="flex items-center gap-2">
+    <div class="space-y-0">
+      {/* Compact header bar */}
+      <div class="flex items-center justify-between px-3 py-2 bg-base-200/50 border-b border-base-300">
+        <span class="text-xs font-semibold text-base-content/60">{t.appTitle}</span>
+        <div class="flex items-center gap-1">
+          {lastChecked && (
+            <span class="text-[10px] text-base-content/30">
+              {formatTimeAgo(lastChecked)}
+            </span>
+          )}
           <button
-            class="btn btn-ghost btn-xs"
+            class="btn btn-ghost btn-xs btn-square"
             onClick={handleForceCheck}
             disabled={loading}
             title={t.checkNow}
@@ -155,7 +138,7 @@ export function App() {
             )}
           </button>
           <button
-            class="btn btn-ghost btn-xs text-base-content/50"
+            class="btn btn-ghost btn-xs text-base-content/30 text-[10px]"
             onClick={handleSignOut}
           >
             {t.signOut}
@@ -163,44 +146,29 @@ export function App() {
         </div>
       </div>
 
-      {/* Error */}
       {error && (
-        <div class="alert alert-error alert-sm">
+        <div class="alert alert-error alert-sm mx-3 mt-2">
           <span class="text-xs break-all">{error}</span>
         </div>
       )}
 
-      {/* Last checked */}
-      {lastChecked && (
-        <p class="text-xs text-base-content/40">
-          {t.lastChecked}: {formatTimeAgo(lastChecked)}
-        </p>
-      )}
-
-      {/* Orders */}
       {orders.length === 0 ? (
-        <div class="text-center py-8 text-base-content/60">
-          <p class="text-lg font-medium">{t.noOrders}</p>
-          <p class="text-sm mt-1">{t.noOrdersHint}</p>
+        <div class="text-center py-12 px-4 text-base-content/60">
+          <p class="text-base font-medium">{t.noOrders}</p>
+          <p class="text-xs mt-1">{t.noOrdersHint}</p>
         </div>
       ) : (
         orders.map((order) => (
-          <div key={order.referenceNumber} class="space-y-3">
-            <StatusCard order={order} />
-            <DeliveryTimeline
-              order={order}
-              tasks={taskDetails[order.referenceNumber]}
-            />
-            <VehicleInfo
-              order={order}
-              tasks={taskDetails[order.referenceNumber]}
-            />
-          </div>
+          <OrderCard
+            key={order.referenceNumber}
+            order={order}
+            tasks={taskDetails[order.referenceNumber]}
+            changes={changes.filter(
+              (c) => c.referenceNumber === order.referenceNumber,
+            )}
+          />
         ))
       )}
-
-      {/* Recent changes */}
-      {changes.length > 0 && <ChangeLog changes={changes} />}
     </div>
   );
 }
@@ -214,19 +182,8 @@ function formatTimeAgo(timestamp: number): string {
 
 function RefreshIcon() {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-4 w-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      stroke-width={2}
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-      />
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width={2}>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
     </svg>
   );
 }

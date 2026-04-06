@@ -298,10 +298,8 @@ export default defineBackground(() => {
           );
           currentTaskDetails[order.referenceNumber] = tasks;
 
-          console.info('[check] Tasks API response for', order.referenceNumber, {
-            hasScheduling: !!tasks.tasks?.scheduling,
-            deliveryWindow: tasks.tasks?.scheduling?.deliveryWindowDisplay ?? 'none',
-            milestones: tasks.activeTaskList?.length ?? 0,
+          console.info('[check] Tasks OK for', order.referenceNumber, {
+            deliveryWindow: tasks.tasks?.scheduling?.deliveryWindowDisplay ?? '-',
           });
 
           const taskChanges = diffTaskDetails(

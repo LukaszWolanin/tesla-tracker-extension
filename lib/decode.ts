@@ -1,3 +1,23 @@
+/**
+ * Build Tesla configurator compositor URL from option codes.
+ */
+export function buildVehicleImageUrl(
+  modelCode: string,
+  mktOptions?: string,
+  view: 'FRONT34' | 'REAR34' | 'SIDE' | 'STUD_FRONT34' = 'STUD_FRONT34',
+  size = 800,
+): string {
+  const model = modelCode.toLowerCase().replace(/^mt/, '').substring(0, 2);
+  const opts = mktOptions
+    ? mktOptions
+        .split(',')
+        .map((c) => `$${c.trim()}`)
+        .join(',')
+    : '';
+
+  return `https://static-assets.tesla.com/configurator/compositor?context=design_studio_2&options=${opts}&view=${view}&model=${model}&size=${size}&bkba_opt=2&crop=0,0,0,0&`;
+}
+
 export function decodeModelCode(code: string): string {
   const upper = code.toUpperCase();
   const models: Record<string, string> = {
