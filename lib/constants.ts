@@ -32,8 +32,8 @@ export const DEFAULT_SETTINGS: UserSettings = {
   notifyOnDeliveryWindow: true,
   notifyOnMilestone: true,
   region: 'eu',
-  deviceLanguage: 'en',
-  deviceCountry: 'US',
+  deviceLanguage: 'pl',
+  deviceCountry: 'PL',
 };
 
 export const ALARM_NAME = 'checkDelivery';

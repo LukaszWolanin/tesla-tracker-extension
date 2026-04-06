@@ -98,29 +98,61 @@ export function App() {
           <label class="label">
             <span class="label-text">{t.language}</span>
           </label>
-          <input
-            type="text"
-            class="input input-bordered input-sm"
+          <select
+            class="select select-bordered select-sm"
             value={settings.deviceLanguage}
-            onInput={(e) => update({ deviceLanguage: (e.target as HTMLInputElement).value })}
-            maxLength={5}
-            placeholder="pl"
-          />
+            onChange={(e) => update({ deviceLanguage: (e.target as HTMLSelectElement).value })}
+          >
+            <option value="pl">Polski</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="it">Italiano</option>
+            <option value="nl">Nederlands</option>
+            <option value="sv">Svenska</option>
+            <option value="no">Norsk</option>
+            <option value="da">Dansk</option>
+            <option value="cs">Čeština</option>
+            <option value="ro">Română</option>
+          </select>
         </div>
         <div class="form-control">
           <label class="label">
             <span class="label-text">{t.country}</span>
           </label>
-          <input
-            type="text"
-            class="input input-bordered input-sm"
+          <select
+            class="select select-bordered select-sm"
             value={settings.deviceCountry}
-            onInput={(e) => update({ deviceCountry: (e.target as HTMLInputElement).value })}
-            maxLength={5}
-            placeholder="PL"
-          />
+            onChange={(e) => update({ deviceCountry: (e.target as HTMLSelectElement).value })}
+          >
+            <option value="PL">Polska</option>
+            <option value="US">USA</option>
+            <option value="DE">Niemcy</option>
+            <option value="GB">Wielka Brytania</option>
+            <option value="FR">Francja</option>
+            <option value="NL">Holandia</option>
+            <option value="SE">Szwecja</option>
+            <option value="NO">Norwegia</option>
+            <option value="DK">Dania</option>
+            <option value="AT">Austria</option>
+            <option value="CH">Szwajcaria</option>
+            <option value="BE">Belgia</option>
+            <option value="ES">Hiszpania</option>
+            <option value="IT">Włochy</option>
+            <option value="IE">Irlandia</option>
+            <option value="CZ">Czechy</option>
+            <option value="PT">Portugalia</option>
+            <option value="RO">Rumunia</option>
+            <option value="AU">Australia</option>
+            <option value="CA">Kanada</option>
+            <option value="CN">Chiny</option>
+          </select>
         </div>
       </div>
+      <p class="text-xs text-base-content/40 -mt-4">
+        Wpływa na język danych z API Tesli (np. daty dostawy), nie na język interfejsu.
+      </p>
 
       <div class="space-y-2">
         <h2 class="text-sm font-semibold">{t.notifications}</h2>

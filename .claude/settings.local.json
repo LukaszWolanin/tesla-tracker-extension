@@ -24,7 +24,11 @@
       "Bash(node -e \"process.stdin.setEncoding\\('utf8'\\);let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>console.log\\(JSON.stringify\\(JSON.parse\\(d\\),null,2\\)\\)\\)\")",
       "Bash(curl -sL \"https://raw.githubusercontent.com/GewoonJaap/tesla-delivery-status-web/refs/heads/main/data/market-options.ts\" -o /tmp/market-options-raw.ts)",
       "Bash(curl -sL \"https://raw.githubusercontent.com/GewoonJaap/tesla-delivery-status-web/refs/heads/main/data/market-options.ts\" -o market-options-raw.ts)",
-      "Bash(curl -sL \"https://raw.githubusercontent.com/LukaszWolanin/tesla-tracker-extension/main/public/screenshots/store-screenshot-1280x800.png\" -o /dev/null)"
+      "Bash(curl -sL \"https://raw.githubusercontent.com/LukaszWolanin/tesla-tracker-extension/main/public/screenshots/store-screenshot-1280x800.png\" -o /dev/null)",
+      "Bash(mkdir -p store-assets)",
+      "Bash(mv public/screenshots/* store-assets/)",
+      "Bash(mv public/icons/store-icon-128.png store-assets/)",
+      "Bash(rmdir public/screenshots)"
     ]
   }
 }
