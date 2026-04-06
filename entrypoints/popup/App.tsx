@@ -138,7 +138,7 @@ export function App() {
             )}
           </button>
           <a
-            href="https://github.com/sponsors/wolanin"
+            href="https://github.com/sponsors/LukaszWolanin"
             target="_blank"
             rel="noopener"
             class="btn btn-ghost btn-xs text-base-content/30 text-[10px]"

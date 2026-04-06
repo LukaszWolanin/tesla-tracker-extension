@@ -167,7 +167,7 @@ export function App() {
       <div class="divider text-xs text-base-content/30">Wesprzyj projekt</div>
       <div class="flex gap-2">
         <a
-          href="https://github.com/sponsors/wolanin"
+          href="https://github.com/sponsors/LukaszWolanin"
           target="_blank"
           rel="noopener"
           class="btn btn-outline btn-sm gap-1"
@@ -176,7 +176,7 @@ export function App() {
           GitHub Sponsors
         </a>
         <a
-          href="https://buymeacoffee.com/wolanin"
+          href="https://buymeacoffee.com/LukaszWolanin"
           target="_blank"
           rel="noopener"
           class="btn btn-outline btn-sm gap-1"

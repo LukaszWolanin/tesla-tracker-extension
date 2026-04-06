@@ -72,8 +72,8 @@ Rozszerzenie korzysta z trzech zrodel danych:
 
 Rozszerzenie jest w 100% darmowe i open-source. Jesli Ci pomaga, mozesz wsprzec rozwoj:
 
-- [GitHub Sponsors](https://github.com/sponsors/wolanin)
-- [Buy Me a Coffee](https://buymeacoffee.com/wolanin)
+- [GitHub Sponsors](https://github.com/sponsors/LukaszWolanin)
+- [Buy Me a Coffee](https://buymeacoffee.com/LukaszWolanin)
 
 ## Licencja
 
