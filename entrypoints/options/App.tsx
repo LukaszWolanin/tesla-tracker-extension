@@ -132,17 +132,7 @@ export function App() {
 
       {/* Debug */}
       <div class="divider text-xs text-base-content/30">Debug</div>
-      <button
-        class="btn btn-outline btn-sm btn-warning"
-        onClick={async () => {
-          await browser.runtime.sendMessage({ type: 'TEST_CHANGE' });
-        }}
-      >
-        Testuj powiadomienia
-      </button>
-      <p class="text-xs text-base-content/40 mt-1">
-        Symuluje 3 zmiany: okno dostawy, przypisanie VIN i zmiana statusu.
-      </p>
+      <TestButton />
     </div>
   );
 }
@@ -166,5 +156,34 @@ function Toggle({
         onChange={(e) => onChange((e.target as HTMLInputElement).checked)}
       />
     </label>
+  );
+}
+
+function TestButton() {
+  const [status, setStatus] = useState<string | null>(null);
+
+  async function handleTest() {
+    setStatus('Wysyłanie...');
+    try {
+      browser.runtime.sendMessage({ type: 'TEST_CHANGE' });
+      setStatus('Wysłano! Sprawdź powiadomienia i popup.');
+      setTimeout(() => setStatus(null), 4000);
+    } catch (err) {
+      setStatus(`Błąd: ${err}`);
+    }
+  }
+
+  return (
+    <div>
+      <button class="btn btn-outline btn-sm btn-warning" onClick={handleTest}>
+        Testuj powiadomienia
+      </button>
+      <p class="text-xs text-base-content/40 mt-1">
+        Symuluje 3 zmiany: okno dostawy, VIN, status.
+      </p>
+      {status && (
+        <p class="text-xs text-success mt-1">{status}</p>
+      )}
+    </div>
   );
 }

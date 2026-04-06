@@ -156,31 +156,41 @@ export default defineBackground(() => {
       }
 
       case 'TEST_CHANGE': {
+        console.info('[test] TEST_CHANGE received');
+        // Use first real order's RN so changes show in popup
+        const orders = await getOrders();
+        const rn = orders[0]?.referenceNumber ?? 'TEST';
         const testChanges: ChangeRecord[] = [
           {
             timestamp: Date.now(),
-            referenceNumber: 'TEST',
+            referenceNumber: rn,
             field: 'deliveryWindow',
             oldValue: '18 Kwiecień - 9 Maj',
             newValue: '15 Kwiecień - 25 Kwiecień',
           },
           {
             timestamp: Date.now(),
-            referenceNumber: 'TEST',
+            referenceNumber: rn,
             field: 'vinAssigned',
             oldValue: undefined,
             newValue: 'XP7YGCET2RB000123',
           },
           {
             timestamp: Date.now(),
-            referenceNumber: 'TEST',
+            referenceNumber: rn,
             field: 'orderStatus',
             oldValue: 'BOOKED',
             newValue: 'IN_PRODUCTION',
           },
         ];
-        await appendChanges(testChanges);
-        await notifyChanges(testChanges);
+        try {
+          await appendChanges(testChanges);
+          console.info('[test] Changes appended');
+          await notifyChanges(testChanges);
+          console.info('[test] Notifications sent');
+        } catch (err) {
+          console.error('[test] Error:', err);
+        }
         return { success: true };
       }
 
@@ -418,12 +428,18 @@ export default defineBackground(() => {
           }
       }
 
-      browser.notifications.create({
-        type: 'basic',
-        iconUrl: browser.runtime.getURL('/icons/icon-128.png'),
-        title,
-        message,
-      });
+      try {
+        const notifId = `change-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        await browser.notifications.create(notifId, {
+          type: 'basic',
+          iconUrl: browser.runtime.getURL('/icons/icon-128.png'),
+          title,
+          message,
+        });
+        console.info('[notify]', notifId, title);
+      } catch (err) {
+        console.error('[notify] Failed:', err);
+      }
     }
   }
 

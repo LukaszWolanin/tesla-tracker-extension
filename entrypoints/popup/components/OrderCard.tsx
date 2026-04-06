@@ -80,34 +80,13 @@ export function OrderCard({ order, tasks, changes }: OrderCardProps) {
   return (
     <div class="pb-1">
       {/* Hero: vehicle image + overlay info */}
-      <div class="relative bg-base-300 overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={modelName}
-          class="w-full h-[160px] object-cover object-center"
-          loading="eager"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-        {/* Gradient overlay */}
-        <div class="absolute inset-0 bg-gradient-to-t from-base-100/95 via-base-100/30 to-transparent" />
-
-        {/* Overlaid info */}
-        <div class="absolute bottom-0 left-0 right-0 p-3">
-          <div class="flex items-end justify-between">
-            <div>
-              <h2 class="text-lg font-bold leading-tight">{modelName}</h2>
-              <p class="text-[10px] text-base-content/50 font-mono">
-                {order.referenceNumber}
-              </p>
-            </div>
-            <span class={`badge ${STATUS_COLORS[order.orderStatus] ?? 'badge-ghost'} badge-sm`}>
-              {STATUS_LABELS[order.orderStatus] ?? order.orderStatus}
-            </span>
-          </div>
-        </div>
-      </div>
+      <HeroImage
+        imageUrl={imageUrl}
+        modelName={modelName}
+        referenceNumber={order.referenceNumber}
+        statusLabel={STATUS_LABELS[order.orderStatus] ?? order.orderStatus}
+        statusColor={STATUS_COLORS[order.orderStatus] ?? 'badge-ghost'}
+      />
 
       {/* Key info strip */}
       <div class="px-3 py-2 bg-base-200/50 border-b border-base-300">
@@ -421,6 +400,58 @@ function decodeVin(vin: string) {
     E: 'Li-Ion (NCA/NCM)', F: 'LFP', H: 'Ogniwa 4680', V: 'NCA', W: 'NCM',
   };
   return { factory: factories[wmi] ?? wmi, battery: batteries[batteryChar] ?? batteryChar };
+}
+
+function HeroImage({
+  imageUrl,
+  modelName,
+  referenceNumber,
+  statusLabel,
+  statusColor,
+}: {
+  imageUrl: string;
+  modelName: string;
+  referenceNumber: string;
+  statusLabel: string;
+  statusColor: string;
+}) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div class="relative bg-base-300 overflow-hidden">
+      {/* Image — hidden until loaded */}
+      {!imgFailed && (
+        <img
+          src={imageUrl}
+          alt=""
+          class={`w-full h-[160px] object-cover object-center transition-opacity ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+          loading="eager"
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgFailed(true)}
+        />
+      )}
+
+      {/* Fallback bg when no image */}
+      {(imgFailed || !imgLoaded) && (
+        <div class="w-full h-[160px] bg-gradient-to-br from-base-300 to-base-200" />
+      )}
+
+      {/* Gradient overlay */}
+      <div class="absolute inset-0 bg-gradient-to-t from-base-100/95 via-base-100/20 to-transparent" />
+
+      {/* Overlaid info — always visible */}
+      <div class="absolute bottom-0 left-0 right-0 p-3">
+        <div class="flex items-end justify-between">
+          <div>
+            <h2 class="text-lg font-bold leading-tight drop-shadow-sm">{modelName}</h2>
+            <p class="text-[10px] text-base-content/50 font-mono">{referenceNumber}</p>
+          </div>
+          <span class={`badge ${statusColor} badge-sm`}>{statusLabel}</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function formatTime(ts: number): string {
