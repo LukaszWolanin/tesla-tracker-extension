@@ -68,6 +68,13 @@ Rozszerzenie korzysta z trzech zrodel danych:
 2. **Akamai Tasks API** (`akamai-apigateway-vfx.tesla.com`) — szczegoly dostawy, kamienie milowe
 3. **Tesla Compositor** (`static-assets.tesla.com`) — obraz pojazdu
 
+## Wsparcie
+
+Rozszerzenie jest w 100% darmowe i open-source. Jesli Ci pomaga, mozesz wsprzec rozwoj:
+
+- [GitHub Sponsors](https://github.com/sponsors/wolanin)
+- [Buy Me a Coffee](https://buymeacoffee.com/wolanin)
+
 ## Licencja
 
 MIT

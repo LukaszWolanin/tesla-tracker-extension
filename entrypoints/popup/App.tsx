@@ -137,6 +137,15 @@ export function App() {
               <RefreshIcon />
             )}
           </button>
+          <a
+            href="https://github.com/sponsors/wolanin"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-ghost btn-xs text-base-content/30 text-[10px]"
+            title="Wesprzyj projekt"
+          >
+            &hearts;
+          </a>
           <button
             class="btn btn-ghost btn-xs text-base-content/30 text-[10px]"
             onClick={handleSignOut}

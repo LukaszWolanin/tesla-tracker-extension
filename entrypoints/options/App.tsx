@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import type { UserSettings, TeslaRegion } from '@/lib/types';
 import { getSettings, setSettings, getChangeHistory, getOrders, getTaskDetails } from '@/lib/storage';
-import { getPremiumStatus, type PremiumStatus } from '@/lib/premium';
+
 import {
   DEFAULT_SETTINGS,
   MIN_POLL_INTERVAL_MINUTES,
@@ -13,11 +13,8 @@ import { t } from '@/lib/i18n';
 export function App() {
   const [settings, setLocalSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [saved, setSaved] = useState(false);
-  const [premium, setPremium] = useState<PremiumStatus | null>(null);
-
   useEffect(() => {
     getSettings().then(setLocalSettings);
-    getPremiumStatus().then(setPremium);
   }, []);
 
   async function handleSave() {
@@ -152,31 +149,6 @@ export function App() {
         {saved ? t.saved : t.saveSettings}
       </button>
 
-      {/* Premium */}
-      <div class="divider text-xs text-base-content/30">Delivery Pass</div>
-      {premium?.active ? (
-        <div class="alert alert-success alert-sm">
-          <span class="text-xs">Delivery Pass aktywny od {premium.purchaseDate}</span>
-        </div>
-      ) : (
-        <div class="card bg-base-200 p-4">
-          <h3 class="text-sm font-bold mb-2">Delivery Pass — 39,99 PLN</h3>
-          <ul class="text-xs text-base-content/60 space-y-1 mb-3">
-            <li>Sprawdzanie co 1 minutę (zamiast 10)</li>
-            <li>Śledzenie wielu zamówień</li>
-            <li>Eksport historii zmian</li>
-            <li>Dane pojazdu po dostawie</li>
-            <li>Jednorazowa płatność — bez subskrypcji</li>
-          </ul>
-          <button class="btn btn-primary btn-sm btn-wide" disabled>
-            Wkrótce dostępne
-          </button>
-          <p class="text-[10px] text-base-content/30 mt-1">
-            Płatność przez ExtensionPay (Stripe). Pojawi się w kolejnej wersji.
-          </p>
-        </div>
-      )}
-
       {/* Export */}
       <div class="divider text-xs text-base-content/30">Eksport danych</div>
       <div class="flex gap-2">
@@ -189,6 +161,32 @@ export function App() {
       </div>
       <p class="text-xs text-base-content/40 mt-1">
         Eksportuje historię zmian, zamówienia i szczegóły dostawy.
+      </p>
+
+      {/* Support */}
+      <div class="divider text-xs text-base-content/30">Wesprzyj projekt</div>
+      <div class="flex gap-2">
+        <a
+          href="https://github.com/sponsors/wolanin"
+          target="_blank"
+          rel="noopener"
+          class="btn btn-outline btn-sm gap-1"
+        >
+          <HeartIcon />
+          GitHub Sponsors
+        </a>
+        <a
+          href="https://buymeacoffee.com/wolanin"
+          target="_blank"
+          rel="noopener"
+          class="btn btn-outline btn-sm gap-1"
+        >
+          <CoffeeIcon />
+          Buy Me a Coffee
+        </a>
+      </div>
+      <p class="text-xs text-base-content/40 mt-1">
+        Rozszerzenie jest w 100% darmowe i open-source. Wsparcie pomaga w dalszym rozwoju.
       </p>
 
       {/* Debug */}
@@ -228,6 +226,22 @@ function downloadFile(content: string, filename: string, mime: string) {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function HeartIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width={2}>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  );
+}
+
+function CoffeeIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width={2}>
+      <path stroke-linecap="round" stroke-linejoin="round" d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zm4-4h8" />
+    </svg>
+  );
 }
 
 function TestButton() {
