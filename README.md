@@ -83,7 +83,7 @@ See [PRIVACY.md](PRIVACY.md) for the full privacy policy.
 This extension is 100% free and open-source. If it helps you, consider supporting development:
 
 - [GitHub Sponsors](https://github.com/sponsors/LukaszWolanin)
-- [Buy Me a Coffee](https://buymeacoffee.com/LukaszWolanin)
+- [Buy Me a Coffee](https://buymeacoffee.com/lukaszwolad)
 
 ## License
 
@@ -133,4 +133,4 @@ Zaladuj rozszerzenie z `.output/chrome-mv3-dev/` w `chrome://extensions` (tryb d
 Rozszerzenie jest w 100% darmowe. Jesli Ci pomaga:
 
 - [GitHub Sponsors](https://github.com/sponsors/LukaszWolanin)
-- [Buy Me a Coffee](https://buymeacoffee.com/LukaszWolanin)
+- [Buy Me a Coffee](https://buymeacoffee.com/lukaszwolad)

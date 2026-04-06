@@ -14,7 +14,7 @@ export const CONFIG = {
 
   // Donate / Sponsor
   githubSponsorsUrl: 'https://github.com/sponsors/LukaszWolanin',
-  buyMeCoffeeUrl: 'https://buymeacoffee.com/LukaszWolanin',
+  buyMeCoffeeUrl: 'https://buymeacoffee.com/lukaszwolad',
 
   // Extension
   extensionName: 'Delivery Tracker for Tesla',
