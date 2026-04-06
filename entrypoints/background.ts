@@ -1,4 +1,5 @@
 import { ALARM_NAME } from '@/lib/constants';
+import { loadLanguage, t } from '@/lib/i18n';
 import { exchangeCodeForTokens, refreshAccessToken } from '@/lib/auth';
 import { fetchOrders, fetchTaskDetails, RateLimitError, NetworkError } from '@/lib/tesla-api';
 import { diffOrders, diffTaskDetails } from '@/lib/diff';
@@ -419,6 +420,7 @@ export default defineBackground(() => {
 
   async function notifyChanges(changes: ChangeRecord[]): Promise<void> {
     const settings = await getSettings();
+    await loadLanguage();
 
     for (const change of changes) {
       let title = '';
@@ -427,19 +429,19 @@ export default defineBackground(() => {
       switch (change.field) {
         case 'orderStatus':
           if (!settings.notifyOnStatusChange) continue;
-          title = 'Zmiana statusu zamówienia';
+          title = `${t.changeStatus}`;
           message = `${change.referenceNumber}: ${change.oldValue} → ${change.newValue}`;
           break;
 
         case 'vinAssigned':
           if (!settings.notifyOnVinAssigned) continue;
-          title = 'Przypisano VIN!';
+          title = `${t.changeVinAssigned}!`;
           message = `${change.referenceNumber}: ${change.newValue}`;
           break;
 
         case 'deliveryWindow':
           if (!settings.notifyOnDeliveryWindow) continue;
-          title = 'Zaktualizowano okno dostawy';
+          title = `${t.changeDeliveryWindow}`;
           message = `${change.referenceNumber}: ${change.newValue}`;
           break;
 
@@ -447,7 +449,7 @@ export default defineBackground(() => {
           if (change.field.startsWith('milestone:')) {
             if (!settings.notifyOnMilestone) continue;
             const milestoneName = change.field.replace('milestone:', '');
-            title = 'Aktualizacja kamienia milowego';
+            title = `${t.milestones}`;
             message = `${milestoneName}: ${change.newValue}`;
           } else {
             continue;

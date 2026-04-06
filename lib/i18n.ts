@@ -1,3 +1,8 @@
+import { storage } from 'wxt/utils/storage';
+import { STORAGE_KEYS } from './constants';
+
+type Translations = typeof pl;
+
 const pl = {
   // App
   appTitle: 'Śledzenie Dostawy',
@@ -102,6 +107,7 @@ const pl = {
   regionCN: 'Chiny',
   language: 'Język',
   country: 'Kraj',
+  langNote: 'Wpływa na język całej aplikacji i danych z API Tesli.',
   notifications: 'Powiadomienia',
   notifyStatusChanges: 'Zmiany statusu',
   notifyVinAssigned: 'Przypisanie VIN',
@@ -111,5 +117,131 @@ const pl = {
   saved: 'Zapisano!',
 } as const;
 
-export type TranslationKey = keyof typeof pl;
-export const t = pl;
+const en: Translations = {
+  appTitle: 'Delivery Tracker',
+  signOut: 'Sign Out',
+  checkNow: 'Check now',
+  lastChecked: 'Last checked',
+  justNow: 'just now',
+  minutesAgo: (n: number) => `${n}m ago`,
+  noOrders: 'No orders found',
+  noOrdersHint:
+    'Click refresh to check for orders, or make sure you have an active Tesla order.',
+
+  loginTitle: 'Delivery Tracker',
+  loginDescription:
+    'Track your Tesla delivery status with real-time notifications.',
+  signIn: 'Sign in with Tesla',
+  loginPrivacy:
+    'Your credentials are handled directly by Tesla. Tokens are encrypted and stored locally — never sent to third parties.',
+
+  deliveryProgress: 'Delivery Progress',
+  deliveryWindow: 'Delivery Window',
+  appointment: 'Appointment',
+  milestones: 'Milestones',
+  orderPlaced: 'Order Placed',
+  orderConfirmed: 'Order Confirmed',
+  inProduction: 'In Production',
+  inTransit: 'In Transit',
+  readyForPickup: 'Ready for Pickup',
+  delivered: 'Delivered',
+
+  'Sign Agreements': 'Sign Agreements',
+  'Vehicle Exited Factory': 'Left Factory',
+  'Final Invoice Generation': 'Invoice Generated',
+  'Complete Final Payment': 'Payment Complete',
+  'Vehicle Ready for Transport': 'Ready for Transport',
+  'Schedule Delivery': 'Schedule Delivery',
+
+  vehicleDetails: 'Vehicle Details',
+  configuration: 'Configuration',
+  vin: 'VIN',
+  factory: 'Factory',
+  battery: 'Battery',
+  modelYear: 'Model Year',
+  market: 'Market',
+  locale: 'Locale',
+  deliveryCenter: 'Delivery Center',
+  odometer: 'Odometer',
+  booked: 'Booked',
+  reserved: 'Reserved',
+  amountDue: 'Amount Due',
+  eSign: 'E-Sign',
+  eSignPending: 'Pending',
+  eSignCompleted: 'Completed',
+  payment: 'Payment',
+  paymentPending: 'Pending',
+  subStatus: 'Sub-status',
+
+  catDrivetrain: 'Drivetrain',
+  catColor: 'Color',
+  catInterior: 'Interior',
+  catWheels: 'Wheels',
+  catSeating: 'Seating',
+  catAutopilot: 'Autopilot',
+  catCharging: 'Charging',
+  catTowing: 'Towing',
+  catPackage: 'Package',
+  catModel: 'Model',
+  catDrive: 'Drive',
+  catOther: 'Other',
+
+  recentChanges: 'Recent Changes',
+  changeStatus: 'Status',
+  changeVinAssigned: 'VIN Assigned',
+  changeEsignStatus: 'E-Sign Status',
+  changeDeliveryWindow: 'Delivery Window',
+  changeOdometer: 'Odometer',
+  changeDeliveryCenter: 'Delivery Center',
+  changeNewOrder: 'New Order',
+
+  statusPending: 'Pending',
+  statusBooked: 'Booked',
+  statusInProduction: 'In Production',
+  statusInTransit: 'In Transit',
+  statusReady: 'Ready',
+  statusDelivered: 'Delivered',
+
+  settings: 'Settings',
+  checkInterval: 'Check interval (minutes)',
+  everyMinutes: (n: number) =>
+    `Every ${n} minute${n !== 1 ? 's' : ''}`,
+  teslaRegion: 'Tesla Region',
+  regionNA: 'North America / APAC',
+  regionEU: 'Europe / EMEA',
+  regionCN: 'China',
+  language: 'Language',
+  country: 'Country',
+  langNote: 'Affects the entire app UI and Tesla API data language.',
+  notifications: 'Notifications',
+  notifyStatusChanges: 'Status changes',
+  notifyVinAssigned: 'VIN assigned',
+  notifyDeliveryWindow: 'Delivery window updates',
+  notifyMilestones: 'Milestones',
+  saveSettings: 'Save',
+  saved: 'Saved!',
+};
+
+const translations: Record<string, Translations> = { pl, en };
+
+// ── Active language ──
+
+let currentLang: Translations = pl;
+
+export function setLanguage(lang: string) {
+  currentLang = translations[lang] ?? translations.en ?? pl;
+}
+
+export async function loadLanguage(): Promise<void> {
+  const stored = await storage.getItem<{ deviceLanguage?: string }>(
+    `local:${STORAGE_KEYS.settings}`,
+  );
+  setLanguage(stored?.deviceLanguage ?? 'pl');
+}
+
+// Proxy that always reads from currentLang
+export const t: Translations = new Proxy(pl, {
+  get(_target, prop: string) {
+    return (currentLang as Record<string, unknown>)[prop];
+  },
+});

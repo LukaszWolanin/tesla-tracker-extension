@@ -9,7 +9,7 @@ import {
   MAX_POLL_INTERVAL_MINUTES,
   ALARM_NAME,
 } from '@/lib/constants';
-import { t } from '@/lib/i18n';
+import { t, setLanguage } from '@/lib/i18n';
 
 export function App() {
   const [settings, setLocalSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
@@ -20,6 +20,7 @@ export function App() {
 
   async function handleSave() {
     await setSettings(settings);
+    setLanguage(settings.deviceLanguage);
 
     await browser.alarms.clear(ALARM_NAME);
     await browser.alarms.create(ALARM_NAME, {
@@ -27,7 +28,11 @@ export function App() {
     });
 
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => {
+      setSaved(false);
+      // Force re-render with new language
+      setLocalSettings({ ...settings });
+    }, 500);
   }
 
   function update(partial: Partial<UserSettings>) {
@@ -151,7 +156,7 @@ export function App() {
         </div>
       </div>
       <p class="text-xs text-base-content/40 -mt-4">
-        Wpływa na język danych z API Tesli (np. daty dostawy), nie na język interfejsu.
+        {t.langNote}
       </p>
 
       <div class="space-y-2">
