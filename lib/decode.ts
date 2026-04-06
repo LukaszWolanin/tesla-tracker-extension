@@ -47,16 +47,37 @@ export function decodeModelCode(code: string): string {
 
 export function decodeChangeField(field: string): string {
   const labels: Record<string, string> = {
-    orderStatus: 'Status',
-    vinAssigned: 'VIN Assigned',
-    esignStatus: 'E-Sign Status',
-    deliveryWindow: 'Delivery Window',
-    vehicleOdometer: 'Odometer',
-    vehicleRoutingLocation: 'Delivery Center',
-    newOrder: 'New Order',
+    orderStatus: 'Status zamówienia',
+    vinAssigned: 'Przypisano VIN',
+    esignStatus: 'Status e-podpisu',
+    deliveryWindow: 'Okno dostawy',
+    deliveryAppointment: 'Termin odbioru',
+    deliveryType: 'Typ dostawy',
+    deliveryDate: 'Data dostawy',
+    vehicleOdometer: 'Przebieg',
+    vehicleRoutingLocation: 'Lokalizacja pojazdu',
+    reservationDate: 'Data rezerwacji',
+    bookedDate: 'Data zamówienia',
+    registrationStep: 'Etap rejestracji',
+    regCurrentStep: 'Krok rejestracji',
+    orderType: 'Typ zamówienia',
+    missingDocuments: 'Brakujące dokumenty',
+    etaToCenter: 'ETA do centrum',
+    totalDue: 'Kwota do zapłaty',
+    paymentComplete: 'Płatność zakończona',
+    financingComplete: 'Finansowanie zakończone',
+    tradeInComplete: 'Trade-in zakończony',
+    pickUpZipCode: 'Kod pocztowy odbioru',
+    mktOptions: 'Konfiguracja',
+    newOrder: 'Nowe zamówienie',
   };
   if (field.startsWith('milestone:'))
     return field.replace('milestone:', '');
+  // For raw dot-paths from deep diff, show last segment
+  if (field.includes('.')) {
+    const last = field.split('.').pop()!;
+    return labels[last] ?? last;
+  }
   return labels[field] ?? field;
 }
 
