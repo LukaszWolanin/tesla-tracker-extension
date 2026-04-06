@@ -1,0 +1,49 @@
+{
+  "name": "tesla-tracker-browser",
+  "version": "0.1.0",
+  "description": "Browser extension for tracking Tesla vehicle delivery status",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "build:safari": "wxt build -b safari",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,css,json,html}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,css,json,html}\"",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run format:check"
+  },
+  "keywords": [
+    "tesla",
+    "delivery",
+    "tracker",
+    "browser-extension",
+    "wxt"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@preact/preset-vite": "^2.10.5",
+    "preact": "^10.29.1",
+    "wxt": "^0.20.20"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/chrome": "^0.1.39",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "daisyui": "^5.5.19",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-preact": "^0.1.0",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2"
+  }
+}
